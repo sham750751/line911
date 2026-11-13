@@ -6,8 +6,10 @@ with sync_playwright() as w:
  browser=w.chromium.launch(executable_path=shutil.which('google-chrome') or shutil.which('chromium'),args=['--no-sandbox','--disable-dev-shm-usage'])
  page=browser.new_page(viewport=dict(width=390,height=844),is_mobile=True,has_touch=True,device_scale_factor=1)
  errors=[]
- page.on('pageerror',lambda e:errors.append(str(e)))
+ page.on('pageerror',lambda e:(errors.append(str(e)), print('Page error:',e,flush=True)))
+ page.on('console',lambda msg: print('Browser:',msg.text,flush=True) if msg.type=='error' else None)
  page.goto(p.as_uri())
+ print('Home:',page.locator('body').inner_text()[:500],flush=True)
  def btn(s,**kw):page.get_by_role('button',name=s,exact=True,**kw).click()
  def fill(n,v):page.locator('form [name="'+n+'"]').fill(v)
  btn('Открыть демобазу')
