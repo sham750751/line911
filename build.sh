@@ -7,7 +7,7 @@ platform="$sdk/platforms/android-35/android.jar"
 mkdir -p build/classes build/dex dist
 "$bt/aapt2" compile --dir android/res -o build/resources.zip
 "$bt/aapt2" link -I "$platform" --manifest android/AndroidManifest.xml -R build/resources.zip -A android/assets -o build/unsigned.apk
-javac -encoding UTF-8 -source 8 -target 8 -bootclasspath "$platform" -d build/classes android/src/ru/sarexpo/ledger/*.java
+javac -encoding UTF-8 --release 8 -classpath "$platform" -d build/classes android/src/ru/sarexpo/ledger/*.java
 mapfile -t classes < <(find build/classes -name '*.class')
 "$bt/d8" --lib "$platform" --min-api 26 --output build/dex "${classes[@]}"
 (cd build/dex && zip -q ../unsigned.apk classes.dex)

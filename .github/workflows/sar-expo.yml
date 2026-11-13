@@ -21,6 +21,18 @@ jobs:
             dist/Sar-Expo-74.apk
             dist/SHA256SUMS.txt
           retention-days: 60
+  interface-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m pip install --break-system-packages playwright
+      - run: python3 tests/mobile.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Sar-Expo-74-Preview
+          path: /tmp/sar-home.png
   android-test:
     needs: build
     runs-on: ubuntu-latest
