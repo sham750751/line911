@@ -2,7 +2,7 @@ name: Verify signed Android installer
 on:
   push:
     branches: [sar-expo-74]
-    paths: ['dist/Sar-Expo-74.apk']
+    paths: ['dist/Sar-Expo-74.apk', 'tests/device.py', '.github/workflows/verify-release.yml']
 permissions:
   contents: read
 jobs:
