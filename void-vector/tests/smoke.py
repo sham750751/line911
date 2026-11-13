@@ -59,6 +59,7 @@ with sync_playwright() as p:
     page.evaluate('VVTest.clearWave()')
     offered = page.evaluate('VVTest.upgrades()')
     check('wave offers three distinct upgrades', snap()['mode']=='upgrades' and len(set(offered))==3)
+    page.wait_for_timeout(400)
     page.screenshot(path=str(OUT/'03-upgrades.png'))
     page.locator('.upgrade').first.tap()
     check('upgrade resumes next wave', snap()['mode']=='play' and snap()['wave']==2)
