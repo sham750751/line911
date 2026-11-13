@@ -12,6 +12,13 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private WebView web;
+    private boolean pageReady;
+    private String incomingBackup;
+    private void deliverBackup() {
+        if (!pageReady || incomingBackup == null) return;
+        web.evaluateJavascript("window.receiveBackup(" + JSONObject.quote(incomingBackup) + ")", null);
+        incomingBackup = null;
+    }
     private static final int SAVE = 1, OPEN = 2, LIMIT = 12 * 1024 * 1024;
     private File pending() { return new File(getCacheDir(), "pending-export.json"); }
 
@@ -27,6 +34,10 @@ public class MainActivity extends Activity {
         web.getSettings().setAllowFileAccessFromFileURLs(false);
         web.getSettings().setAllowUniversalAccessFromFileURLs(false);
         web.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView v, String url) {
+                pageReady = "file:///android_asset/index.html".equals(url);
+                deliverBackup();
+            }
             @Override public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) { return true; }
         });
         web.addJavascriptInterface(new Documents(), "SarFiles");
@@ -70,7 +81,8 @@ public class MainActivity extends Activity {
             } else if (request == OPEN) {
                 ByteArrayOutputStream bytes = new ByteArrayOutputStream();
                 try (InputStream in = getContentResolver().openInputStream(uri)) { copy(in, bytes); }
-                web.evaluateJavascript("window.receiveBackup(" + JSONObject.quote(bytes.toString("UTF-8")) + ")", null);
+                incomingBackup = bytes.toString("UTF-8");
+                deliverBackup();
             }
         } catch (Exception e) { message("Ошибка файла. Проверь размер и доступ."); }
     }

@@ -1,7 +1,7 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="ru.sarexpo.ledger" android:versionCode="1" android:versionName="0.1.0">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="ru.sarexpo.trade" android:versionCode="2" android:versionName="0.2.0">
   <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="34"/>
-  <application android:label="Sar Expo 74" android:icon="@drawable/mark" android:allowBackup="false" android:usesCleartextTraffic="false" android:theme="@android:style/Theme.Material.NoActionBar">
-    <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+  <application android:label="Sar Expo 74 · Учёт" android:icon="@drawable/mark" android:allowBackup="false" android:usesCleartextTraffic="false" android:theme="@android:style/Theme.Material.NoActionBar">
+    <activity android:name="ru.sarexpo.ledger.MainActivity" android:configChanges="orientation|screenSize|keyboardHidden" android:exported="true" android:windowSoftInputMode="adjustResize">
       <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
     </activity>
   </application>
