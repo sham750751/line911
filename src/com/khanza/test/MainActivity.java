@@ -30,8 +30,8 @@ public final class MainActivity extends Activity {
  LinearLayout row=new LinearLayout(this);Button minus=button("−",Color.rgb(44,58,79));Button plus=button("+",Color.rgb(22,131,104));
  LinearLayout.LayoutParams left=new LinearLayout.LayoutParams(0,dp(60),1);left.setMargins(0,0,dp(8),0);row.addView(minus,left);
  LinearLayout.LayoutParams right=new LinearLayout.LayoutParams(0,dp(60),1);right.setMargins(dp(8),0,0,0);row.addView(plus,right);card.addView(row,new LinearLayout.LayoutParams(-1,-2));
- minus.setOnClickListener(v->{if(count>Integer.MIN_VALUE)count--;save();});plus.setOnClickListener(v->{if(count<Integer.MAX_VALUE)count++;save();});
- gap(root,18);Button reset=button("Сбросить",Color.rgb(31,43,63));root.addView(reset,new LinearLayout.LayoutParams(-1,dp(54)));reset.setOnClickListener(v->{count=0;save();Toast.makeText(this,"Счётчик сброшен",Toast.LENGTH_SHORT).show();});
+ minus.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(count>Integer.MIN_VALUE)count--;save();}});plus.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(count<Integer.MAX_VALUE)count++;save();}});
+ gap(root,18);Button reset=button("Сбросить",Color.rgb(31,43,63));root.addView(reset,new LinearLayout.LayoutParams(-1,dp(54)));reset.setOnClickListener(new View.OnClickListener(){public void onClick(View v){count=0;save();Toast.makeText(MainActivity.this,"Счётчик сброшен",Toast.LENGTH_SHORT).show();}});
  gap(root,24);root.addView(text("Закрой и открой приложение:\nчисло сохранится.",14,muted));gap(root,18);root.addView(text("Версия 1.0 • Без интернета",12,muted));save();
  }
 }
