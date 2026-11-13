@@ -1,0 +1,20 @@
+const assert=require('node:assert/strict');
+const L=require('../android/assets/ledger.js');
+const events=[];
+function add(type,fields){const row={id:'e'+(events.length+1),time:new Date().toISOString(),type,...fields};const s=L.project([...events,row]);events.push(row);return s}
+let s=add('buy',{partner:'Тест',rate:130000,fees:52000,paid:25000,place:'Гуанчжоу',items:[{name:'A',qty:3,price:10000},{name:'B',qty:1,price:10000}]});
+assert.equal(s.orders.e1.due,15000);assert.equal(s.orders.e1.total,572000);assert.equal(s.lots['e1-0'].cost,429000);
+const lot='e1-0';
+add('move',{lot,from:'Гуанчжоу',to:'Москва',qty:3});
+s=add('sale',{lot,from:'Москва',qty:1,price:180000,paid:50000,partner:'Клиент'});
+assert.equal(s.sales.e3.due,130000);assert.equal(s.profit,37000);
+s=add('defect',{lot,from:'Москва',qty:2,reason:'Тест'});
+assert.equal(s.units,1);assert.throws(()=>add('sale',{lot,from:'Москва',qty:1,partner:'X',price:1,paid:0}));
+s=add('resolve',{ref:'e4',result:'replace',qty:1,to:'Москва'});assert.equal(s.units,2);
+s=add('resolve',{ref:'e4',result:'loss',qty:1,comp:100000});assert.equal(s.profit,-6000);assert.equal(s.claims.e4.due,100000);
+s=add('pay',{side:'claim',ref:'e4',amount:75000});assert.equal(s.claims.e4.due,25000);
+s=add('pay',{side:'client',ref:'e3',amount:130000});assert.equal(s.sales.e3.due,0);
+s=add('pay',{side:'supplier',ref:'e1',amount:15000});assert.equal(s.orders.e1.due,0);assert.equal(s.profit,-6000);
+assert.throws(()=>add('pay',{side:'supplier',ref:'e1',amount:1}));
+assert.equal(L.numeric('13,4512',4),134512);assert.throws(()=>L.numeric('1.5',0));
+console.log('Purchase, cost allocation, stock movements, credit sale, claims, settlements, and balance limits OK');

@@ -1,17 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
-SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
-BT="$(find "$SDK/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
-PLATFORM="$(find "$SDK/platforms" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+cd "$(dirname "$0")"
+sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+bt="$(find "$sdk/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+platform="$sdk/platforms/android-35/android.jar"
 mkdir -p build/classes build/dex dist
-"$BT/aapt2" link -I "$PLATFORM/android.jar" --manifest AndroidManifest.xml -o build/unsigned.apk
-javac -encoding UTF-8 -source 8 -target 8 -bootclasspath "$PLATFORM/android.jar" -d build/classes src/com/khanza/test/MainActivity.java
-mapfile -t CLASSES < <(find build/classes -name '*.class')
-"$BT/d8" --lib "$PLATFORM/android.jar" --min-api 26 --output build/dex "${CLASSES[@]}"
+"$bt/aapt2" compile --dir android/res -o build/resources.zip
+"$bt/aapt2" link -I "$platform" --manifest android/AndroidManifest.xml -R build/resources.zip -A android/assets -o build/unsigned.apk
+javac -encoding UTF-8 -source 8 -target 8 -bootclasspath "$platform" -d build/classes android/src/ru/sarexpo/ledger/*.java
+mapfile -t classes < <(find build/classes -name '*.class')
+"$bt/d8" --lib "$platform" --min-api 26 --output build/dex "${classes[@]}"
 (cd build/dex && zip -q ../unsigned.apk classes.dex)
-"$BT/zipalign" -f 4 build/unsigned.apk build/aligned.apk
-keytool -genkeypair -keystore build/test.jks -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=Khanza Test"
-"$BT/apksigner" sign --ks build/test.jks --ks-pass pass:android --key-pass pass:android --out dist/Khanza-Test.apk build/aligned.apk
-"$BT/apksigner" verify --verbose dist/Khanza-Test.apk
-"$BT/aapt2" dump badging dist/Khanza-Test.apk
-sha256sum dist/Khanza-Test.apk > dist/SHA256SUMS.txt
+"$bt/zipalign" -f 4 build/unsigned.apk build/aligned.apk
+if [[ -z "${SAR_SIGN_KEY:-}" ]]; then
+  export SAR_SIGN_PASS=android
+  SAR_SIGN_KEY=build/prototype.p12
+  if [[ ! -f "$SAR_SIGN_KEY" ]]; then
+    keytool -genkeypair -keystore "$SAR_SIGN_KEY" -storepass:env SAR_SIGN_PASS -alias sarexpo -keyalg RSA -keysize 3072 -validity 3650 -dname "CN=Sar Expo 74 Prototype"
+  fi
+fi
+"$bt/apksigner" sign --ks "$SAR_SIGN_KEY" --ks-pass env:SAR_SIGN_PASS --out dist/Sar-Expo-74.apk build/aligned.apk
+"$bt/apksigner" verify --verbose --print-certs dist/Sar-Expo-74.apk
+"$bt/aapt2" dump badging dist/Sar-Expo-74.apk
+(cd dist && sha256sum Sar-Expo-74.apk > SHA256SUMS.txt)

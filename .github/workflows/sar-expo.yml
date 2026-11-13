@@ -1,0 +1,45 @@
+name: Sar Expo 74 Android
+on:
+  push:
+    branches: [sar-expo-74]
+    paths-ignore: ['dist/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: node tests/ledger.cjs
+      - run: bash build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sar-Expo-74-Android
+          path: |
+            dist/Sar-Expo-74.apk
+            dist/SHA256SUMS.txt
+          retention-days: 60
+  android-test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Sar-Expo-74-Android
+          path: dist
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: bash tests/device.sh
